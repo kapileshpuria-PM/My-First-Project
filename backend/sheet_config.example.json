@@ -1,0 +1,8 @@
+{
+  "sheet_url": "https://docs.google.com/spreadsheets/d/YOUR_SPREADSHEET_ID/edit#gid=0",
+  "tab_name": "Exact tab name if you do not use gid",
+  "gid": "0",
+  "header_row": 1,
+  "cache_seconds": 60,
+  "verify_tls": true
+}

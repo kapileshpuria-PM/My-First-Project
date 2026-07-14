@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.DS_Store
+backend/sheet_config.json
+*.log
+.env
+.env.*
+node_modules/
+.vercel/

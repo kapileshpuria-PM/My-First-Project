@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pocket FM — Deal Tracker</title>
+  <link rel="icon" type="image/png" href="./assets/logo-red.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    (function () { try { document.documentElement.dataset.theme = localStorage.getItem('pfm_theme') || 'dark'; } catch (e) { document.documentElement.dataset.theme = 'dark'; } })();
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: { sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'] },
+          colors: {
+            ink: {
+              950: 'rgb(var(--ink-950) / <alpha-value>)', 900: 'rgb(var(--ink-900) / <alpha-value>)',
+              850: 'rgb(var(--ink-850) / <alpha-value>)', 800: 'rgb(var(--ink-800) / <alpha-value>)',
+              700: 'rgb(var(--ink-700) / <alpha-value>)', 600: 'rgb(var(--ink-600) / <alpha-value>)'
+            },
+            slate: {
+              100: 'rgb(var(--s100) / <alpha-value>)', 200: 'rgb(var(--s200) / <alpha-value>)',
+              300: 'rgb(var(--s300) / <alpha-value>)', 400: 'rgb(var(--s400) / <alpha-value>)',
+              500: 'rgb(var(--s500) / <alpha-value>)', 600: 'rgb(var(--s600) / <alpha-value>)'
+            },
+            brand: { 300: '#f6889f', 400: '#ef5476', 500: '#E51F4F', 600: '#c4123e' }
+          },
+          boxShadow: {
+            card: '0 1px 0 0 rgba(255,255,255,.045) inset, 0 14px 34px -16px rgba(0,0,0,.55)',
+            glow: '0 12px 40px -12px rgba(144,97,255,.55)',
+            pop: '0 24px 70px -20px rgba(0,0,0,.6)'
+          }
+        }
+      }
+    };
+  </script>
+  <style>
+    :root, [data-theme="dark"] {
+      --ink-950: 9 9 15; --ink-900: 18 18 28; --ink-850: 25 26 38; --ink-800: 32 33 48; --ink-700: 46 47 66; --ink-600: 68 70 94;
+      --s100: 246 245 251; --s200: 226 224 238; --s300: 197 196 214; --s400: 167 168 189; --s500: 126 128 150; --s600: 92 94 114;
+      --glow1: rgba(229,31,79,.15); --glow2: rgba(229,31,79,.06);
+      --grain: .04; --hgrad: linear-gradient(180deg,#fdeef2,#d6abb8);
+      --scroll: 40 40 58; --scroll-h: 60 60 84;
+    }
+    [data-theme="light"] {
+      --ink-950: 246 247 251; --ink-900: 255 255 255; --ink-850: 240 242 248; --ink-800: 255 255 255; --ink-700: 224 228 238; --ink-600: 200 206 220;
+      --s100: 22 24 38; --s200: 38 42 62; --s300: 64 70 92; --s400: 96 104 126; --s500: 122 132 152; --s600: 150 160 178;
+      --glow1: rgba(229,31,79,.10); --glow2: rgba(229,31,79,.05);
+      --grain: .02; --hgrad: linear-gradient(180deg,#2a0c16,#7a2438);
+      --scroll: 200 206 220; --scroll-h: 170 178 196;
+    }
+    html, body { background: rgb(var(--ink-950)); }
+    body {
+      background:
+        radial-gradient(1100px 600px at 6% -10%, var(--glow1), transparent 56%),
+        radial-gradient(900px 520px at 104% -6%, var(--glow2), transparent 54%),
+        rgb(var(--ink-950));
+      -webkit-font-smoothing: antialiased; text-rendering: optimizeLegibility; letter-spacing: -0.011em;
+    }
+    body::before { content: ""; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: var(--grain);
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+    #root { position: relative; z-index: 1; }
+    ::selection { background: rgba(229,31,79,.32); color: #fff; }
+    ::-webkit-scrollbar { width: 11px; height: 11px; }
+    ::-webkit-scrollbar-thumb { background: rgb(var(--scroll)); border-radius: 9px; border: 3px solid transparent; background-clip: content-box; }
+    ::-webkit-scrollbar-thumb:hover { background: rgb(var(--scroll-h)); background-clip: content-box; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    .tnum { font-variant-numeric: tabular-nums; }
+    .h-grad { background: var(--hgrad); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .fade-in { animation: fade .22s cubic-bezier(.2,.7,.3,1); }
+    @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+    .surface { background: rgb(var(--ink-900)); }
+    .rowline:hover { box-shadow: inset 3px 0 0 0 #E51F4F; }
+    .logo-dark, .logo-light { display: none; }
+    [data-theme="dark"] .logo-dark { display: block; }
+    [data-theme="light"] .logo-light { display: block; }
+    /* smooth theme switch (only active briefly during toggle to avoid jank) */
+    .theming, .theming * { transition: background-color .35s ease, color .3s ease, border-color .35s ease, fill .3s ease, box-shadow .35s ease !important; }
+    .surface, aside, .rowline, section, input, select, button, table, td, th { transition: background-color .2s ease, border-color .2s ease, color .15s ease; }
+    /* audio equalizer logo motif */
+    .eq { display: flex; align-items: center; gap: 2px; height: 16px; }
+    .eq i { width: 2.5px; height: 5px; border-radius: 3px; background: #fff; animation: eqp 1.1s ease-in-out infinite; }
+    .eq i:nth-child(2){animation-delay:.18s} .eq i:nth-child(3){animation-delay:.36s} .eq i:nth-child(4){animation-delay:.54s}
+    @keyframes eqp { 0%,100%{height:4px;opacity:.7} 50%{height:14px;opacity:1} }
+    /* light-mode overrides for white-opacity utilities */
+    [data-theme="light"] .text-white, [data-theme="light"] .hover\:text-white:hover { color: #0b0f17; }
+    [data-theme="light"] .text-sky-300 { color: #0369a1; } [data-theme="light"] .text-amber-300 { color: #b45309; }
+    [data-theme="light"] .text-violet-300 { color: #6d28d9; } [data-theme="light"] .text-emerald-300 { color: #047857; }
+    [data-theme="light"] .text-brand-300, [data-theme="light"] .text-brand-400 { color: #c4123e; }
+    [data-theme="light"] .border-white\/5, [data-theme="light"] .border-white\/10, [data-theme="light"] .border-white\/15,
+    [data-theme="light"] .border-white\/\[0\.04\], [data-theme="light"] .border-white\/\[0\.05\],
+    [data-theme="light"] .border-white\/\[0\.06\], [data-theme="light"] .border-white\/\[0\.07\] { border-color: rgba(15,23,42,.11); }
+    [data-theme="light"] .hover\:border-white\/15:hover { border-color: rgba(15,23,42,.2); }
+    [data-theme="light"] .bg-white\/\[0\.02\], [data-theme="light"] .bg-white\/\[0\.025\], [data-theme="light"] .bg-white\/\[0\.03\],
+    [data-theme="light"] .bg-white\/5, [data-theme="light"] .bg-white\/\[0\.06\], [data-theme="light"] .bg-white\/\[0\.08\] { background-color: rgba(15,23,42,.045); }
+    [data-theme="light"] .hover\:bg-white\/\[0\.025\]:hover, [data-theme="light"] .hover\:bg-white\/\[0\.03\]:hover,
+    [data-theme="light"] .hover\:bg-white\/5:hover, [data-theme="light"] .hover\:bg-white\/\[0\.06\]:hover { background-color: rgba(15,23,42,.07); }
+    [data-theme="light"] .ring-white\/10, [data-theme="light"] .ring-white\/15 { --tw-ring-color: rgba(15,23,42,.12); }
+    /* hide number spinners everywhere as a safety net */
+    input[type=number]::-webkit-outer-spin-button, input[type=number]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    input[type=number] { -moz-appearance: textfield; }
+  </style>
+</head>
+<body class="font-sans text-slate-200 antialiased">
+  <div id="root"></div>
+
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
+  <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="./data.js?v=20260714-payment-quarter-combo"></script>
+  <script src="./seed.js?v=20260714-payment-quarter-combo"></script>
+  <script src="./backend.js?v=20260714-payment-quarter-combo"></script>
+  <script src="./app.js?v=20260714-payment-quarter-combo"></script>
+  <script src="./app2.js?v=20260714-payment-quarter-combo"></script>
+  <script src="./payments.js?v=20260714-payment-quarter-combo"></script>
+  <script src="./app3.js?v=20260714-payment-quarter-combo"></script>
+</body>
+</html>
