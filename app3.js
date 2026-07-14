@@ -557,6 +557,7 @@ function inferResultType(r) {
 }
 function ipFromResult(r) {
   return {
+    sourceKey: r.sourceKey || r.source_key || "",
     series: r.series || r.ip || r.name || "",
     asin: r.asin || "",
     genre: r.genre || "",
@@ -655,7 +656,7 @@ function EntityDealSearch({ deals, onPick }) {
   const [open, setOpen] = useState(false);
   const [remote, setRemote] = useState([]);
   const [loading, setLoading] = useState(false);
-  const local = useMemo(() => currentEntitySearchResults(deals, q).concat(sheetEntitySearchResults(q)), [deals, q]);
+  const local = useMemo(() => currentEntitySearchResults(deals, q), [deals, q]);
   useEffect(() => {
     const s = q.trim();
     let active = true;
@@ -708,7 +709,7 @@ function IPTitleSearch({ deals, entityName, entityKey, selectedIps, onPick }) {
   const [loading, setLoading] = useState(false);
   const local = useMemo(() => {
     if (!entityName) return [];
-    return currentIpsForEntity(deals, entityName, q).concat(sheetIpsForEntity(entityName, q));
+    return currentIpsForEntity(deals, entityName, q);
   }, [deals, entityName, q]);
   useEffect(() => {
     let active = true;

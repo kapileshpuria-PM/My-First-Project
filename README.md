@@ -47,14 +47,42 @@ You can also use environment variables:
 - `GOOGLE_SHEET_TAB`
 - `GOOGLE_SHEET_HEADER_ROW`
 
+## Supabase Production Setup
+
+Run the schema in Supabase SQL Editor:
+
+```sql
+-- copy/paste supabase/schema.sql
+```
+
+Then add these Vercel Environment Variables for Production:
+
+- `SUPABASE_URL`
+- `SUPABASE_SECRET_KEY`
+- `GOOGLE_SHEET_URL`
+- `GOOGLE_SHEET_HEADER_ROW`
+
+For the current source sheet, `GOOGLE_SHEET_HEADER_ROW` should be `2` because the first row is a warning row and the real headers start on row 2.
+
+The Vercel API routes then become the app backend:
+
+- `GET /api/repository/search`
+- `POST /api/repository/snapshot`
+- `POST /api/deals`
+- `GET /api/sheet/reload`
+- `GET /api/sheet/status`
+- `GET /api/health`
+
+`/api/sheet/reload` is also scheduled through Vercel Cron at `0 3 * * *` UTC every day. The sync upserts changed rows, inserts new rows, and marks rows missing from the live sheet as inactive instead of deleting them.
+
 ## Deploy Notes
 
-The current app is a no-build static frontend with a small Python local preview server.
+The current app is a no-build static frontend with Vercel serverless API routes for production and a small Python local preview server.
 
 For a quick Vercel demo:
 
 - Deploy the repo as a static site.
-- The app will open and use bundled/local demo data.
-- Persistent DB and live Google Sheet sync should be wired next through Supabase/serverless endpoints.
+- The app will open and use bundled/local demo data until the Supabase env vars and schema are configured.
+- Persistent repository search and live Google Sheet sync run through Supabase/serverless endpoints.
 
 For the seamless production workflow, Supabase should become the source of truth for entities, IPs, deals, payment terms, show mappings, and monthly metrics.
