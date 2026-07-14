@@ -198,6 +198,7 @@ const ICON_BODY = {
   search: html`<g><circle cx="11" cy="11" r="7"/><path d="m20 20-3.2-3.2"/></g>`,
   back: html`<g><path d="M15 18l-6-6 6-6"/></g>`,
   plus: html`<g><path d="M12 5v14M5 12h14"/></g>`,
+  calendar: html`<g><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 9h18"/></g>`,
   link: html`<g><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></g>`,
   x: html`<g><path d="M18 6 6 18M6 6l12 12"/></g>`,
   star: html`<g><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17l-5.2 2.6 1-5.8L3.5 9.7l5.9-.9z"/></g>`,

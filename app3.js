@@ -174,6 +174,8 @@ function RoundsSection({ deal, roundId, setRoundId, update }) {
 
 /* ------- Terms editor ------- */
 const MG_DATE_MONTHS = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+const MG_CAL_MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+const MG_CAL_WEEKDAYS = ["S", "M", "T", "W", "T", "F", "S"];
 function mgPaidDateValue(value) {
   const raw = String(value || "").trim();
   if (!raw) return "";
@@ -185,14 +187,124 @@ function mgPaidDateValue(value) {
   }
   return "";
 }
+function mgPaidDateObject(value) {
+  const iso = mgPaidDateValue(value);
+  if (!iso) return null;
+  const parts = iso.split("-").map(Number);
+  return new Date(parts[0], parts[1] - 1, parts[2]);
+}
+function mgDateIso(date) {
+  return date.getFullYear() + "-" + String(date.getMonth() + 1).padStart(2, "0") + "-" + String(date.getDate()).padStart(2, "0");
+}
+function mgSameDay(a, b) {
+  return !!a && !!b && a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+}
+function mgDateLabel(value) {
+  const d = mgPaidDateObject(value);
+  if (d) return String(d.getDate()).padStart(2, "0") + " " + MG_CAL_MONTHS[d.getMonth()].slice(0, 3) + " " + d.getFullYear();
+  return value || "Select date";
+}
 function mgPaidDisplay(value) {
   const parsed = typeof payPeriodInfo === "function" ? payPeriodInfo(value) : null;
   return parsed && parsed.label && parsed.label !== "\u2014" ? parsed.label : (value || "Round date");
 }
-function openNativeDatePicker(e) {
-  try {
-    if (e.currentTarget.showPicker) e.currentTarget.showPicker();
-  } catch (_) {}
+function PaymentDatePicker({ value, onChange }) {
+  const selected = mgPaidDateObject(value);
+  const initial = selected || new Date();
+  const [open, setOpen] = useState(false);
+  const [viewDate, setViewDate] = useState(new Date(initial.getFullYear(), initial.getMonth(), 1));
+  const [popup, setPopup] = useState({ left: 0, top: 0, width: 288 });
+  const wrapRef = useRef(null);
+  const panelRef = useRef(null);
+  const positionPanel = () => {
+    const trigger = wrapRef.current && wrapRef.current.querySelector('[data-mg-datepicker="trigger"]');
+    if (!trigger) return;
+    const r = trigger.getBoundingClientRect();
+    const main = document.querySelector("main");
+    const mainRect = main ? main.getBoundingClientRect() : null;
+    const pad = 12;
+    const minLeft = Math.max(pad, mainRect ? mainRect.left + pad : pad);
+    const availableWidth = Math.max(180, window.innerWidth - minLeft - pad);
+    const width = Math.min(288, availableWidth);
+    const maxLeft = Math.max(minLeft, window.innerWidth - width - pad);
+    const left = Math.min(Math.max(r.right - width, minLeft), maxLeft);
+    const panelHeight = panelRef.current ? panelRef.current.offsetHeight : 365;
+    let top = r.bottom + 8;
+    if (top + panelHeight > window.innerHeight - pad && r.top - panelHeight - 8 > pad) top = r.top - panelHeight - 8;
+    top = Math.max(pad, Math.min(top, window.innerHeight - panelHeight - pad));
+    setPopup({ left, top, width });
+  };
+  useEffect(() => {
+    if (!open) return;
+    const d = mgPaidDateObject(value) || new Date();
+    setViewDate(new Date(d.getFullYear(), d.getMonth(), 1));
+  }, [open, value]);
+  useEffect(() => {
+    if (!open) return;
+    const close = (e) => { if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false); };
+    document.addEventListener("mousedown", close);
+    return () => document.removeEventListener("mousedown", close);
+  }, [open]);
+  useEffect(() => {
+    if (!open) return;
+    positionPanel();
+    const raf = requestAnimationFrame(positionPanel);
+    window.addEventListener("resize", positionPanel);
+    window.addEventListener("scroll", positionPanel, true);
+    return () => {
+      cancelAnimationFrame(raf);
+      window.removeEventListener("resize", positionPanel);
+      window.removeEventListener("scroll", positionPanel, true);
+    };
+  }, [open, viewDate, value]);
+  const year = viewDate.getFullYear();
+  const month = viewDate.getMonth();
+  const firstDay = new Date(year, month, 1).getDay();
+  const cells = Array.from({ length: 42 }, (_, i) => new Date(year, month, 1 - firstDay + i));
+  const today = new Date();
+  const moveMonth = (delta) => setViewDate(new Date(year, month + delta, 1));
+  const chooseDate = (d) => { onChange(mgDateIso(d)); setOpen(false); };
+  return html`<div ref=${wrapRef} class="relative">
+    <button type="button" data-mg-datepicker="trigger" onClick=${() => setOpen(!open)} aria-haspopup="dialog" aria-expanded=${open}
+      class=${cx(inputCls, "flex items-center justify-between gap-3 text-left cursor-pointer pr-3")}>
+      <span class=${value ? "text-slate-100" : "text-slate-500"}>${value ? mgDateLabel(value) : "Round date"}</span>
+      <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-brand-300 shadow-[0_0_18px_rgba(229,31,79,.18)]">
+        <${Icon} name="calendar" size=${15} />
+      </span>
+    </button>
+    ${open && html`<div ref=${panelRef} role="dialog" data-mg-datepicker="panel" style=${{ left: popup.left + "px", top: popup.top + "px", width: popup.width + "px" }} class="fixed z-[80] max-h-[calc(100vh-1.5rem)] overflow-y-auto rounded-2xl border border-white/10 bg-ink-900 p-3 text-slate-100 shadow-pop ring-1 ring-brand-500/15 fade-in">
+      <div class="pointer-events-none absolute inset-x-4 top-0 h-px bg-gradient-to-r from-transparent via-brand-400/60 to-transparent"></div>
+      <div class="mb-3 flex items-center justify-between gap-3">
+        <div>
+          <div class="text-sm font-semibold text-white">${MG_CAL_MONTHS[month]} ${year}</div>
+          <div class="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">MG recovery date</div>
+        </div>
+        <div class="flex items-center gap-1">
+          <button type="button" onClick=${() => moveMonth(-1)} class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-slate-300 transition hover:border-brand-500/40 hover:bg-brand-500/10 hover:text-brand-300"><${Icon} name="back" size=${15} /></button>
+          <button type="button" onClick=${() => moveMonth(1)} class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-slate-300 transition hover:border-brand-500/40 hover:bg-brand-500/10 hover:text-brand-300"><${Icon} name="back" size=${15} className="rotate-180" /></button>
+        </div>
+      </div>
+      <div class="grid grid-cols-7 gap-1">
+        ${MG_CAL_WEEKDAYS.map((d, i) => html`<div key=${d + i} class="py-1 text-center text-[10px] font-bold uppercase tracking-wide text-slate-500">${d}</div>`)}
+        ${cells.map((d) => {
+          const inMonth = d.getMonth() === month;
+          const isSelected = mgSameDay(d, selected);
+          const isToday = mgSameDay(d, today);
+          return html`<button key=${mgDateIso(d)} type="button" data-mg-date=${mgDateIso(d)} onClick=${() => chooseDate(d)}
+            class=${cx("relative flex h-8 items-center justify-center rounded-lg text-sm font-semibold transition",
+              isSelected ? "bg-brand-500 text-white shadow-[0_10px_26px_-12px_rgba(229,31,79,.9)] ring-1 ring-brand-300/60" :
+              inMonth ? "text-slate-100 hover:bg-brand-500/12 hover:text-brand-300" : "text-slate-600 hover:bg-white/[0.04] hover:text-slate-400",
+              isToday && !isSelected ? "ring-1 ring-brand-400/40" : "")}>
+            ${d.getDate()}
+          </button>`;
+        })}
+      </div>
+      <div class="mt-3 flex items-center justify-between border-t border-white/[0.06] pt-3">
+        <button type="button" onClick=${() => { onChange(""); setOpen(false); }} class="rounded-lg px-2.5 py-1.5 text-xs font-semibold text-slate-400 transition hover:bg-white/[0.05] hover:text-slate-200">Clear</button>
+        <button type="button" onClick=${() => chooseDate(new Date())} class="rounded-lg bg-brand-500/15 px-3 py-1.5 text-xs font-semibold text-brand-300 ring-1 ring-brand-500/30 transition hover:bg-brand-500/25 hover:text-brand-200">Today</button>
+      </div>
+    </div>`}
+  </div>`;
 }
 function TermsEditor({ t, setTerm, round, deal }) {
   const toggleDed = (d) => { const has = (t.deductions || []).includes(d); setTerm("deductions", has ? t.deductions.filter((x) => x !== d) : (t.deductions || []).concat([d])); };
@@ -206,7 +318,7 @@ function TermsEditor({ t, setTerm, round, deal }) {
       </div></${Field}>
       <${Field} label="Basis"><${Select} value=${t.mgBasis} onChange=${(v) => setTerm("mgBasis", v)} options=${["Per deal", "Per IP", "Per title"]} /></${Field}>
       <${Field} label="Recoupable"><${Select} value=${t.mgRecoupable ? "Yes" : "No"} onChange=${(v) => setTerm("mgRecoupable", v === "Yes")} options=${["Yes", "No"]} /></${Field}>
-      <${Field} label="MG paid month" hint="blank = round date"><input type="date" value=${mgPaidDateValue(t.mgPaidOn)} onInput=${(e) => setTerm("mgPaidOn", e.target.value)} onClick=${openNativeDatePicker} class=${cx(inputCls, "cursor-pointer")} /></${Field}>
+      <${Field} label="MG paid month" hint="blank = round date"><${PaymentDatePicker} value=${t.mgPaidOn || ""} onChange=${(v) => setTerm("mgPaidOn", v)} /></${Field}>
 
       <${Field} label="Rev share" hint=${revMax != null ? "matrix max " + revMax + "%" : ""}>
         <${NumInput} value=${t.revSharePct} onChange=${(v) => setTerm("revSharePct", v)} suffix="%" className=${revOver ? "!border-rose-500/70 focus:!ring-rose-500/20" : ""} />
@@ -332,7 +444,7 @@ function PaymentTermsByIpPanel({ deal, update }) {
             <${Field} label="Rev share"><${NumInput} value=${terms.revSharePct} onChange=${(v) => patchIpPayment(update, deal, realIdx, { revSharePct: v })} suffix="%" /></${Field}>
             <${Field} label="Rev base"><${Select} value=${terms.revShareBase || "Net"} onChange=${(v) => patchIpPayment(update, deal, realIdx, { revShareBase: v })} options=${["Net", "Gross"]} /></${Field}>
             <${Field} label="Cost cap"><${NumInput} value=${terms.capPct} onChange=${(v) => patchIpPayment(update, deal, realIdx, { capPct: v })} suffix="%" placeholder="none" /></${Field}>
-            <${Field} label="MG paid month"><input type="date" value=${mgPaidDateValue(terms.mgPaidOn)} onInput=${(e) => patchIpPayment(update, deal, realIdx, { mgPaidOn: e.target.value })} onClick=${openNativeDatePicker} class=${cx(inputCls, "cursor-pointer")} /></${Field}>
+            <${Field} label="MG paid month"><${PaymentDatePicker} value=${terms.mgPaidOn || ""} onChange=${(v) => patchIpPayment(update, deal, realIdx, { mgPaidOn: v })} /></${Field}>
             <div class="col-span-2 md:col-span-4">
               <div class="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Deductions</div>
               <div class="flex flex-wrap gap-2">${DEDUCTIONS.map((name) => {

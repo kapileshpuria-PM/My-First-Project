@@ -205,7 +205,7 @@ function DealDetail({ deal, allDeals, onBack, update, remove }) {
 }
 
 function Panel({ title, action, children }) {
-  return html`<section class="overflow-hidden rounded-2xl border border-white/[0.07] surface shadow-card">
+  return html`<section class="relative rounded-2xl border border-white/[0.07] surface shadow-card">
     <div class="flex items-center justify-between border-b border-white/[0.06] px-5 py-3.5">
       <h2 class="text-[13px] font-semibold tracking-tight text-slate-200">${title}</h2>${action}
     </div>
