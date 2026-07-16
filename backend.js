@@ -20,6 +20,10 @@
     async saveDeal(deal) {
       return request("/api/deals", { method: "POST", body: JSON.stringify({ deal }) });
     },
+    async listDeals() {
+      const data = await request("/api/deals");
+      return data.deals || [];
+    },
     async snapshotDeal(deal) {
       return request("/api/repository/snapshot", { method: "POST", body: JSON.stringify({ deal }) });
     },

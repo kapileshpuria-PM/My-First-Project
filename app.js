@@ -168,13 +168,23 @@ function paymentReadinessForDeal(deal) {
 
 /* ----------------------------- store ----------------------------- */
 const KEY = "pfm_deal_tracker_v1";
-const SEED_VERSION = 5; // bump to push fresh seed data to already-loaded browsers
+const SEED_VERSION = 6; // bump to push fresh seed data to already-loaded browsers
 function freshSeed() { return JSON.parse(JSON.stringify(window.SEED_DEALS || [])); }
 function ensureDemoSeedDeals(deals) {
   const existing = {};
   (deals || []).forEach((d) => { if (d && d.id) existing[d.id] = true; });
   const required = freshSeed().filter((d) => d.demoPaymentSeed && !existing[d.id]);
   return required.length ? deals.concat(required) : deals;
+}
+function mergeDealsById(base, incoming) {
+  const byId = {};
+  (base || []).forEach((d) => { if (d && d.id) byId[d.id] = d; });
+  (incoming || []).forEach((d) => {
+    if (!d || !d.id) return;
+    // Prefer remote/shared deal when present so DB wins for shared Closed Deals.
+    byId[d.id] = d;
+  });
+  return Object.values(byId);
 }
 function load() {
   try {
@@ -189,6 +199,17 @@ function persistDealSnapshot(deal) {
   const backend = window.PFMBackend;
   if (!backend || !backend.snapshotDeal) return;
   backend.snapshotDeal(deal).catch((e) => console.warn("Repository snapshot failed", e));
+}
+async function hydrateDealsFromDb(setDeals) {
+  const backend = window.PFMBackend;
+  if (!backend || !backend.listDeals) return;
+  try {
+    const remote = await backend.listDeals();
+    if (!Array.isArray(remote) || !remote.length) return;
+    setDeals((local) => ensureDemoSeedDeals(mergeDealsById(local, remote)));
+  } catch (e) {
+    console.warn("Shared deals hydrate failed", e);
+  }
 }
 
 /* ----------------------------- icons (Lucide-style) ----------------------------- */
@@ -325,6 +346,7 @@ function App() {
   const [creating, setCreating] = useState(false);
   const [band, setBand] = useState(null);
   useEffect(() => { save(deals); }, [deals]);
+  useEffect(() => { hydrateDealsFromDb(setDeals); }, []);
   useEffect(() => {
     const fromHash = () => {
       const m = (location.hash || "").match(/deal\/(.+)$/);

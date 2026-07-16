@@ -1,0 +1,103 @@
+show_id,show_name,show_language,period,revenue,scaling_spends,testing_spends,ep_duration_final_master,scheduled_episode_duration,live_episodes_duration,total_duration_sum
+sh-ent-pub-09-ip-01,English Cottage Garden Mysteries,english,01 / Jan / 2026,500000,20000,3000,0,0,20,20
+sh-ent-pub-09-ip-01,English Cottage Garden Mysteries,english,01 / Feb / 2026,500000,20000,3000,0,0,21,21
+sh-ent-pub-09-ip-01,English Cottage Garden Mysteries,english,01 / Mar / 2026,500000,20000,3000,0,0,22,22
+sh-ent-pub-09-ip-01,English Cottage Garden Mysteries,english,01 / Apr / 2026,500000,20000,3000,0,0,23,23
+sh-ent-pub-09-ip-01,English Cottage Garden Mysteries,english,01 / May / 2026,500000,20000,3000,0,0,24,24
+sh-ent-pub-09-ip-01,English Cottage Garden Mysteries,english,01 / Jun / 2026,500000,20000,3000,0,0,25,25
+sh-ent-pub-09-ip-02,Oxford Tearoom Mysteries,english,01 / Jan / 2026,100000,60000,5000,0,0,18,18
+sh-ent-pub-09-ip-02,Oxford Tearoom Mysteries,english,01 / Feb / 2026,100000,60000,5000,0,0,19,19
+sh-ent-pub-09-ip-02,Oxford Tearoom Mysteries,english,01 / Mar / 2026,100000,60000,5000,0,0,20,20
+sh-ent-pub-09-ip-02,Oxford Tearoom Mysteries,english,01 / Apr / 2026,100000,60000,5000,0,0,21,21
+sh-ent-pub-09-ip-02,Oxford Tearoom Mysteries,english,01 / May / 2026,100000,60000,5000,0,0,22,22
+sh-ent-pub-09-ip-02,Oxford Tearoom Mysteries,english,01 / Jun / 2026,100000,60000,5000,0,0,23,23
+sh-ent-pub-09-ip-03,Bewitched by Chocolate Cozy Fantasy Witch Mysteries,english,01 / Jan / 2026,200000,200000,5000,0,0,16,16
+sh-ent-pub-09-ip-03,Bewitched by Chocolate Cozy Fantasy Witch Mysteries,english,01 / Feb / 2026,200000,2000,500,0,0,17,17
+sh-ent-pub-09-ip-03,Bewitched by Chocolate Cozy Fantasy Witch Mysteries,english,01 / Mar / 2026,200000,2000,500,0,0,18,18
+sh-ent-pub-09-ip-03,Bewitched by Chocolate Cozy Fantasy Witch Mysteries,english,01 / Apr / 2026,200000,2000,500,0,0,19,19
+sh-ent-pub-09-ip-03,Bewitched by Chocolate Cozy Fantasy Witch Mysteries,english,01 / May / 2026,200000,2000,500,0,0,20,20
+sh-ent-pub-09-ip-03,Bewitched by Chocolate Cozy Fantasy Witch Mysteries,english,01 / Jun / 2026,200000,2000,500,0,0,21,21
+sh-ent-pub-08-ip-01,Schicksalsreihe,english,01 / Jan / 2026,15000,2000,500,0,0,22,22
+sh-ent-pub-08-ip-01,Schicksalsreihe,english,01 / Feb / 2026,15000,2000,500,0,0,23,23
+sh-ent-pub-08-ip-01,Schicksalsreihe,english,01 / Mar / 2026,15000,2000,500,0,0,24,24
+sh-ent-pub-08-ip-01,Schicksalsreihe,english,01 / Apr / 2026,15000,2000,500,0,0,25,25
+sh-ent-pub-08-ip-01,Schicksalsreihe,english,01 / May / 2026,15000,2000,500,0,0,15,15
+sh-ent-pub-08-ip-01,Schicksalsreihe,english,01 / Jun / 2026,15000,2000,500,0,0,16,16
+sh-ent-pub-08-ip-02,Sündenreihe,english,01 / Jan / 2026,100000,10000,2000,0,0,20,20
+sh-ent-pub-08-ip-02,Sündenreihe,english,01 / Feb / 2026,100000,10000,2000,0,0,21,21
+sh-ent-pub-08-ip-02,Sündenreihe,english,01 / Mar / 2026,100000,10000,2000,0,0,22,22
+sh-ent-pub-08-ip-02,Sündenreihe,english,01 / Apr / 2026,100000,10000,2000,0,0,23,23
+sh-ent-pub-08-ip-02,Sündenreihe,english,01 / May / 2026,100000,10000,2000,0,0,24,24
+sh-ent-pub-08-ip-02,Sündenreihe,english,01 / Jun / 2026,100000,10000,2000,0,0,25,25
+sh-ent-pub-08-ip-03,Seelenlos,english,01 / Jan / 2026,100000,10000,2000,0,0,18,18
+sh-ent-pub-08-ip-03,Seelenlos,english,01 / Feb / 2026,100000,10000,2000,0,0,19,19
+sh-ent-pub-08-ip-03,Seelenlos,english,01 / Mar / 2026,100000,10000,2000,0,0,20,20
+sh-ent-pub-08-ip-03,Seelenlos,english,01 / Apr / 2026,100000,10000,2000,0,0,21,21
+sh-ent-pub-08-ip-03,Seelenlos,english,01 / May / 2026,100000,10000,2000,0,0,22,22
+sh-ent-pub-08-ip-03,Seelenlos,english,01 / Jun / 2026,100000,10000,2000,0,0,23,23
+sh-ent-auth-01-ip-01,Joachim Stein in Friesland,english,01 / Jan / 2026,100000,10000,2000,0,0,16,16
+sh-ent-auth-01-ip-01,Joachim Stein in Friesland,english,01 / Feb / 2026,100000,10000,2000,0,0,17,17
+sh-ent-auth-01-ip-01,Joachim Stein in Friesland,english,01 / Mar / 2026,100000,10000,2000,0,0,18,18
+sh-ent-auth-01-ip-01,Joachim Stein in Friesland,english,01 / Apr / 2026,100000,10000,2000,0,0,19,19
+sh-ent-auth-01-ip-01,Joachim Stein in Friesland,english,01 / May / 2026,100000,10000,2000,0,0,20,20
+sh-ent-auth-01-ip-01,Joachim Stein in Friesland,english,01 / Jun / 2026,100000,10000,2000,0,0,21,21
+sh-ent-auth-01-ip-02,Jan Krömer Krimi-Reihe,english,01 / Jan / 2026,100000,10000,2000,0,0,25,25
+sh-ent-auth-01-ip-02,Jan Krömer Krimi-Reihe,english,01 / Feb / 2026,100000,10000,2000,0,0,15,15
+sh-ent-auth-01-ip-02,Jan Krömer Krimi-Reihe,english,01 / Mar / 2026,100000,10000,2000,0,0,16,16
+sh-ent-auth-01-ip-02,Jan Krömer Krimi-Reihe,english,01 / Apr / 2026,100000,10000,2000,0,0,17,17
+sh-ent-auth-01-ip-02,Jan Krömer Krimi-Reihe,english,01 / May / 2026,100000,10000,2000,0,0,18,18
+sh-ent-auth-01-ip-02,Jan Krömer Krimi-Reihe,english,01 / Jun / 2026,100000,10000,2000,0,0,19,19
+sh-ent-auth-01-ip-03,Kommissar Guntram Krimi-Reihe,english,01 / Jan / 2026,100000,10000,2000,0,0,23,23
+sh-ent-auth-01-ip-03,Kommissar Guntram Krimi-Reihe,english,01 / Feb / 2026,100000,10000,2000,0,0,24,24
+sh-ent-auth-01-ip-03,Kommissar Guntram Krimi-Reihe,english,01 / Mar / 2026,100000,10000,2000,0,0,25,25
+sh-ent-auth-01-ip-03,Kommissar Guntram Krimi-Reihe,english,01 / Apr / 2026,100000,10000,2000,0,0,15,15
+sh-ent-auth-01-ip-03,Kommissar Guntram Krimi-Reihe,english,01 / May / 2026,100000,10000,2000,0,0,16,16
+sh-ent-auth-01-ip-03,Kommissar Guntram Krimi-Reihe,english,01 / Jun / 2026,100000,10000,2000,0,0,17,17
+sh-ent-auth-01-ip-04,Eva Sturm ermittelt,english,01 / Jan / 2026,100000,10000,2000,0,0,21,21
+sh-ent-auth-01-ip-04,Eva Sturm ermittelt,english,01 / Feb / 2026,100000,10000,2000,0,0,22,22
+sh-ent-auth-01-ip-04,Eva Sturm ermittelt,english,01 / Mar / 2026,100000,10000,2000,0,0,23,23
+sh-ent-auth-01-ip-04,Eva Sturm ermittelt,english,01 / Apr / 2026,100000,10000,2000,0,0,24,24
+sh-ent-auth-01-ip-04,Eva Sturm ermittelt,english,01 / May / 2026,100000,10000,2000,0,0,25,25
+sh-ent-auth-01-ip-04,Eva Sturm ermittelt,english,01 / Jun / 2026,100000,10000,2000,0,0,15,15
+sh-ent-agen-05-ip-01,Sarah Kincaid ermittelt,english,01 / Jan / 2026,100000,10000,2000,0,0,24,24
+sh-ent-agen-05-ip-01,Sarah Kincaid ermittelt,english,01 / Feb / 2026,100000,10000,2000,0,0,25,25
+sh-ent-agen-05-ip-01,Sarah Kincaid ermittelt,english,01 / Mar / 2026,100000,10000,2000,0,0,15,15
+sh-ent-agen-05-ip-01,Sarah Kincaid ermittelt,english,01 / Apr / 2026,100000,10000,2000,0,0,16,16
+sh-ent-agen-05-ip-01,Sarah Kincaid ermittelt,english,01 / May / 2026,100000,10000,2000,0,0,17,17
+sh-ent-agen-05-ip-01,Sarah Kincaid ermittelt,english,01 / Jun / 2026,100000,10000,2000,0,0,18,18
+sh-ent-auth-02-ip-01,Geheimakte,english,01 / Jan / 2026,0,20000,0,0,0,18,18
+sh-ent-auth-02-ip-01,Geheimakte,english,01 / Feb / 2026,0,20000,0,0,0,19,19
+sh-ent-auth-02-ip-01,Geheimakte,english,01 / Mar / 2026,0,20000,0,0,0,20,20
+sh-ent-auth-02-ip-01,Geheimakte,english,01 / Apr / 2026,150000,2000,500,0,0,21,21
+sh-ent-auth-02-ip-01,Geheimakte,english,01 / May / 2026,150000,2000,500,0,0,22,22
+sh-ent-auth-02-ip-01,Geheimakte,english,01 / Jun / 2026,150000,2000,500,0,0,23,23
+sh-ent-pub-10-ip-01,Die Hafenärztin,english,01 / Jan / 2026,0,0,0,0,0,17,17
+sh-ent-pub-10-ip-01,Die Hafenärztin,english,01 / Feb / 2026,100000,0,0,0,0,18,18
+sh-ent-pub-10-ip-01,Die Hafenärztin,english,01 / Mar / 2026,0,10000,0,0,0,19,19
+sh-ent-pub-10-ip-01,Die Hafenärztin,english,01 / Apr / 2026,100000,10000,2000,0,0,20,20
+sh-ent-pub-10-ip-01,Die Hafenärztin,english,01 / May / 2026,100000,10000,2000,0,0,21,21
+sh-ent-pub-10-ip-01,Die Hafenärztin,english,01 / Jun / 2026,100000,10000,2000,0,0,22,22
+sh-vkc-en,The Vampire Knitting Club (EN),english,01 / Jan / 2026,60000,6000,1000,0,0,16,16
+sh-vkc-en,The Vampire Knitting Club (EN),english,01 / Feb / 2026,60000,6000,1000,0,0,17,17
+sh-vkc-en,The Vampire Knitting Club (EN),english,01 / Mar / 2026,60000,6000,1000,0,0,18,18
+sh-vkc-en,The Vampire Knitting Club (EN),english,01 / Apr / 2026,60000,6000,1000,0,0,19,19
+sh-vkc-en,The Vampire Knitting Club (EN),english,01 / May / 2026,60000,6000,1000,0,0,20,20
+sh-vkc-en,The Vampire Knitting Club (EN),english,01 / Jun / 2026,60000,6000,1000,0,0,21,21
+sh-vkc-de,Club der strickenden Vampire (DE),german,01 / Jan / 2026,40000,4000,1000,0,0,19,19
+sh-vkc-de,Club der strickenden Vampire (DE),german,01 / Feb / 2026,40000,4000,1000,0,0,20,20
+sh-vkc-de,Club der strickenden Vampire (DE),german,01 / Mar / 2026,40000,4000,1000,0,0,21,21
+sh-vkc-de,Club der strickenden Vampire (DE),german,01 / Apr / 2026,40000,4000,1000,0,0,22,22
+sh-vkc-de,Club der strickenden Vampire (DE),german,01 / May / 2026,40000,4000,1000,0,0,23,23
+sh-vkc-de,Club der strickenden Vampire (DE),german,01 / Jun / 2026,40000,4000,1000,0,0,24,24
+sh-ent-pub-04-ip-01,Jack Daniels series,english,01 / Jan / 2026,100000,10000,2000,0,0,18,18
+sh-ent-pub-04-ip-01,Jack Daniels series,english,01 / Feb / 2026,100000,10000,2000,0,0,19,19
+sh-ent-pub-04-ip-01,Jack Daniels series,english,01 / Mar / 2026,100000,10000,2000,0,0,20,20
+sh-ent-pub-04-ip-01,Jack Daniels series,english,01 / Apr / 2026,100000,10000,2000,0,0,21,21
+sh-ent-pub-04-ip-01,Jack Daniels series,english,01 / May / 2026,100000,10000,2000,0,0,22,22
+sh-ent-pub-04-ip-01,Jack Daniels series,english,01 / Jun / 2026,100000,10000,2000,0,0,23,23
+sh-ent-pub-04-ip-02,Afraid (Konrath),english,01 / Jan / 2026,1000,100,0,0,0,16,16
+sh-ent-pub-04-ip-02,Afraid (Konrath),english,01 / Feb / 2026,1000,100,0,0,0,17,17
+sh-ent-pub-04-ip-02,Afraid (Konrath),english,01 / Mar / 2026,1000,100,0,0,0,18,18
+sh-ent-pub-04-ip-02,Afraid (Konrath),english,01 / Apr / 2026,1000,100,0,0,0,19,19
+sh-ent-pub-04-ip-02,Afraid (Konrath),english,01 / May / 2026,1000,100,0,0,0,20,20
+sh-ent-pub-04-ip-02,Afraid (Konrath),english,01 / Jun / 2026,1000,100,0,0,0,21,21

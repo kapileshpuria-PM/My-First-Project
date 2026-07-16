@@ -515,6 +515,10 @@ class PreviewHandler(SimpleHTTPRequestHandler):
         if parsed.path == "/api/sheet/status":
             load_sheet_rows()
             return json_response(self, 200, sheet_status())
+        if parsed.path == "/api/deals":
+            db = load_db()
+            deals = list(db["deals"].values())
+            return json_response(self, 200, {"ok": True, "deals": deals, "count": len(deals)})
         return super().do_GET()
 
     def do_POST(self):
