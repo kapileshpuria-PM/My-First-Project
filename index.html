@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Pocket FM — Deal Tracker</title>
-  <link rel="icon" type="image/png" href="./assets/logo-red.png" />
+  <link rel="icon" type="image/png" href="./assets/pocket-fm-app-icon.png?v=20260717-crop" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
@@ -105,17 +105,22 @@
 </head>
 <body class="font-sans text-slate-200 antialiased">
   <div id="root"></div>
+  <img id="pfm-invoice-logo" src="./assets/pocket-fm-invoice-logo.png?v=20260717" alt="" hidden aria-hidden="true" />
 
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/htm@3.1.1/dist/htm.umd.js"></script>
   <script src="https://unpkg.com/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+  <script src="https://unpkg.com/exceljs@4.4.0/dist/exceljs.min.js"></script>
+  <script src="https://unpkg.com/jspdf@4.0.0/dist/jspdf.umd.min.js"></script>
+  <script src="https://unpkg.com/jspdf-autotable@5.0.7/dist/jspdf.plugin.autotable.min.js"></script>
   <script src="./data.js?v=20260716-qa-closed-deals"></script>
   <script src="./seed.js?v=20260716-qa-closed-deals"></script>
   <script src="./backend.js?v=20260716-qa-closed-deals"></script>
-  <script src="./app.js?v=20260716-qa-closed-deals"></script>
-  <script src="./app2.js?v=20260716-qa-closed-deals"></script>
-  <script src="./payments.js?v=20260716-qa-closed-deals"></script>
-  <script src="./app3.js?v=20260716-qa-closed-deals"></script>
+  <script src="./app.js?v=20260717-launch-save-guard"></script>
+  <script src="./app2.js?v=20260717-styled-excel"></script>
+  <script src="./assets/pocket-fm-invoice-logo-data.js?v=20260717"></script>
+  <script src="./payments.js?v=20260717-demo-warning"></script>
+  <script src="./app3.js?v=20260717-launch-source-enrichment"></script>
 </body>
 </html>

@@ -167,11 +167,20 @@ function DealDetail({ deal, allDeals, onBack, update, remove }) {
   function logAndSet(patch, logs) {
     update(deal.id, (d) => {
       const rounds = d.rounds.map((r) => (r.id === roundId ? { ...r, terms: { ...r.terms, ...patch } } : r));
-      const changeLog = (logs || []).map((l) => ({ ts: new Date().toISOString(), who: d.accountManager || "AM", round: round.label, ...l })).concat(d.changeLog || []);
+      const stampedLogs = (logs || []).map((l) => ({ ts: new Date().toISOString(), who: d.accountManager || "AM", round: round.label, ...l }));
+      const changeLog = prependChangeLog(compactChangeLog(d.changeLog || []), stampedLogs);
       return { ...d, rounds, changeLog, updatedAt: new Date().toISOString() };
     });
   }
-  const setTerm = (field, value, labelFrom) => logAndSet({ [field]: value }, [{ field, from: labelFrom != null ? labelFrom : t[field], to: value }]);
+  const setTerm = (field, value, labelFrom) => {
+    const patch = { [field]: value };
+    const logs = [{ field, from: labelFrom != null ? labelFrom : t[field], to: value }];
+    if (field === "mgAmount" && t.mgBasis !== "Per deal") {
+      patch.mgBasis = "Per deal";
+      logs.push({ field: "mgBasis", from: t.mgBasis, to: "Per deal" });
+    }
+    logAndSet(patch, logs);
+  };
 
   return html`<div class="fade-in pb-16">
     <${Header}
@@ -184,21 +193,33 @@ function DealDetail({ deal, allDeals, onBack, update, remove }) {
         <${GhostBtn} onClick=${() => { if (confirm("Delete this deal?")) remove(deal.id); }} className="text-rose-300 hover:!text-rose-200"><${Icon} name="trash" size=${15} />Delete<//>
       </div>`} />
 
-    <div class="grid grid-cols-1 gap-5 px-8 lg:grid-cols-3">
-      <div class="space-y-5 lg:col-span-2">
-        <${IPSection} deal=${deal} allDeals=${allDeals} update=${update} />
-        <${RoundsSection} deal=${deal} roundId=${roundId} setRoundId=${setRoundId} update=${update} />
-        <${TermsEditor} t=${t} setTerm=${setTerm} round=${round} deal=${deal} />
-        <${PaymentTermsByIpPanel} deal=${deal} update=${update} />
-        <${ProgressionPanel} deal=${deal} />
+    <div class="space-y-5 px-8">
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div class="space-y-5 lg:col-span-2">
+          <${IPSection} deal=${deal} allDeals=${allDeals} update=${update} />
+          <${RoundsSection} deal=${deal} roundId=${roundId} setRoundId=${setRoundId} update=${update} />
+        </div>
+        <div class="space-y-5">
+          <${DerivedCard} deal=${deal} />
+          <${PaymentReadinessCard} deal=${deal} />
+        </div>
       </div>
-      <div class="space-y-5">
-        <${DerivedCard} deal=${deal} />
-        <${PaymentReadinessCard} deal=${deal} />
-        <${GuardrailCard} deal=${deal} />
-        <${LinksCard} deal=${deal} update=${update} />
-        <${CommentsCard} deal=${deal} update=${update} />
-        <${ChangeLogCard} deal=${deal} />
+
+      <div class="grid grid-cols-1 items-start gap-5 lg:grid-cols-3">
+        <div class="lg:col-span-2"><${TermsEditor} t=${t} setTerm=${setTerm} round=${round} deal=${deal} /></div>
+        <${GuardrailCard} deal=${deal} terms=${t} />
+      </div>
+
+      <div class="grid grid-cols-1 gap-5 lg:grid-cols-3">
+        <div class="space-y-5 lg:col-span-2">
+          <${PaymentTermsByIpPanel} deal=${deal} update=${update} />
+          <${ProgressionPanel} deal=${deal} />
+        </div>
+        <div class="space-y-5">
+          <${LinksCard} deal=${deal} update=${update} />
+          <${CommentsCard} deal=${deal} update=${update} />
+          <${ChangeLogCard} deal=${deal} />
+        </div>
       </div>
     </div>
   </div>`;

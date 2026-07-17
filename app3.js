@@ -10,7 +10,7 @@ function IPLinks({ ip, onPatch }) {
   const addLink = () => { onPatch({ links: links.concat([{ label: "Link", url: "" }]) }); setEdit(true); };
   const setLink = (i, patch) => onPatch({ links: links.map((l, idx) => (idx === i ? { ...l, ...patch } : l)) });
   const delLink = (i) => onPatch({ links: links.filter((_, idx) => idx !== i) });
-  return html`<div class="mt-3">
+  return html`<div class="mt-2">
     <div class="flex flex-wrap items-center gap-2">
       ${legacy.map((l, i) => html`<${LinkChip} key=${"lg" + i} label=${l.label} url=${l.url} />`)}
       ${!edit && links.map((l, i) => html`<${LinkChip} key=${"ln" + i} label=${l.label || "Link"} url=${l.url} />`)}
@@ -30,23 +30,26 @@ function IPLinks({ ip, onPatch }) {
 /* ------- IP section ------- */
 function IPSection({ deal, allDeals, update }) {
   const addIP = (r) => update(deal.id, (d) => ({
-    ...d, ips: d.ips.concat([{ id: uid("ip"), ipId: mintIpIdFor(allDeals || [d], d, d.entityId), series: r.series, asin: r.asin, genre: r.genre, launchDate: "", lengthHrs: r.durationHrs, totalBooks: r.totalBooks, rating: r.rating, numRatings: r.numRatings, amazon: r.amazon, goodreads: r.goodreads, links: [], titlesInScope: "All" }]),
+    ...d, ips: d.ips.concat([{ id: uid("ip"), ipId: mintIpIdFor(allDeals || [d], d, d.entityId), source: r.source || "sheet", series: r.series, asin: r.asin, genre: r.genre, launchDate: launchYearFromResult(r), lengthHrs: r.lengthHrs != null ? r.lengthHrs : r.durationHrs, totalBooks: r.totalBooks, rating: r.rating, numRatings: r.numRatings, amazon: r.amazon, goodreads: r.goodreads, links: [], titlesInScope: "All" }]),
     updatedAt: new Date().toISOString()
   }));
-  const addManual = () => update(deal.id, (d) => ({ ...d, ips: d.ips.concat([{ id: uid("ip"), ipId: mintIpIdFor(allDeals || [d], d, d.entityId), series: "New IP", genre: "", totalBooks: null, links: [], titlesInScope: "All" }]), updatedAt: new Date().toISOString() }));
+  const addManual = () => update(deal.id, (d) => ({ ...d, ips: d.ips.concat([{ id: uid("ip"), ipId: mintIpIdFor(allDeals || [d], d, d.entityId), source: "manual", series: "", genre: "", launchDate: "", totalBooks: null, links: [], titlesInScope: "All" }]), updatedAt: new Date().toISOString() }));
   const setIP = (i, patch) => update(deal.id, (d) => ({ ...d, ips: d.ips.map((ip, idx) => (idx === i ? { ...ip, ...patch } : ip)) }));
   const delIP = (i) => update(deal.id, (d) => ({ ...d, ips: d.ips.filter((_, idx) => idx !== i) }));
+  const compactInputCls = cx(inputCls, "!rounded-lg !px-2.5 !py-1.5 !text-xs");
+  const compactNumCls = "!rounded-lg !px-2.5 !py-1.5 !text-xs";
 
   return html`<${Panel} title=${"IPs / Series (" + deal.ips.length + ")"}
     action=${html`<${GhostBtn} onClick=${addManual}>+ Manual<//>`}>
-    <div class="mb-4"><${ScoutSearch} mode="ip" scope=${deal.scoutEntityKey} placeholder=${deal.scoutEntityKey ? "Showing this entity's series \u2014 click to add" : "Search SCOUT to add an IP (series or author)"} onPick=${addIP} /></div>
+    <div class="mb-3"><${ScoutSearch} mode="ip" scope=${deal.scoutEntityKey} placeholder=${deal.scoutEntityKey ? "Showing this entity's series \u2014 click to add" : "Search SCOUT to add an IP (series or author)"} onPick=${addIP} /></div>
     <div class="space-y-2">
-      ${deal.ips.map((ip, i) => html`<div key=${ip.id || ip.ipId || i} class=${cx("rounded-xl border bg-ink-850 p-4", ip.dropped ? "border-rose-500/30 opacity-70" : "border-white/[0.06]")}>
+      ${deal.ips.map((ip, i) => html`<div key=${ip.id || ip.ipId || i} class=${cx("rounded-xl border bg-ink-850 p-3", ip.dropped ? "border-rose-500/30 opacity-70" : "border-white/[0.06]")}>
         <div class="flex items-start justify-between gap-3">
           <div class="min-w-0 flex-1">
-            <input value=${ip.series || ""} onInput=${(e) => setIP(i, { series: e.target.value })} placeholder="IP / series name"
-              class="w-full bg-transparent text-[15px] font-semibold tracking-tight text-slate-100 outline-none placeholder:text-slate-600" />
-            <div class="mt-1 flex items-center gap-2">
+            <input value=${ip.series || ""} onInput=${(e) => setIP(i, { series: e.target.value })} placeholder="Enter IP / series name"
+              autoFocus=${ip.source === "manual" && !ip.series}
+              class="w-full rounded-lg border border-white/10 bg-black/10 px-2.5 py-1.5 text-sm font-semibold text-slate-100 outline-none transition placeholder:text-slate-500 hover:border-white/20 focus:border-brand-500 focus:ring-4 focus:ring-brand-500/10" />
+            <div class="mt-0.5 flex items-center gap-2">
               ${ip.ipId && html`<${IdChip} id=${ip.ipId} title="IP ID" />`}
               ${ip.dropped && html`<span class="rounded bg-rose-500/15 px-1.5 py-0.5 text-[10px] font-semibold text-rose-300 ring-1 ring-rose-400/30">Dropped</span>`}
             </div>
@@ -56,14 +59,14 @@ function IPSection({ deal, allDeals, update }) {
             <button onClick=${() => { if (confirm("Remove this IP from the deal?")) delIP(i); }} class="flex h-7 w-7 items-center justify-center rounded-lg text-slate-500 transition hover:bg-white/5 hover:text-rose-400"><${Icon} name="x" size=${14} /></button>
           </div>
         </div>
-        <div class="mt-3 grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <${Field} label="Genre"><input value=${ip.genre || ""} onInput=${(e) => setIP(i, { genre: e.target.value })} class=${inputCls} /></${Field}>
-          <${Field} label="Rating"><${NumInput} value=${ip.rating} onChange=${(v) => setIP(i, { rating: v })} placeholder="0.0" /></${Field}>
-          <${Field} label="No. of ratings"><${NumInput} value=${ip.numRatings} onChange=${(v) => setIP(i, { numRatings: v })} placeholder="0" /></${Field}>
-          <${Field} label="Total books"><${NumInput} value=${ip.totalBooks} onChange=${(v) => setIP(i, { totalBooks: v })} placeholder="0" /></${Field}>
-          <${Field} label="Length"><${NumInput} value=${ip.lengthHrs} onChange=${(v) => setIP(i, { lengthHrs: v })} suffix="hrs" /></${Field}>
-          <${Field} label="Launch"><input value=${ip.launchDate || ""} onInput=${(e) => setIP(i, { launchDate: e.target.value })} class=${inputCls} placeholder="year" /></${Field}>
-          <${Field} label="Titles in scope" hint="per IP"><input value=${ip.titlesInScope || "All"} onInput=${(e) => setIP(i, { titlesInScope: e.target.value })} class=${inputCls} /></${Field}>
+        <div class="mt-2 grid grid-cols-2 gap-2 md:grid-cols-4">
+          <div class="md:col-span-2"><${Field} label="Genre"><input value=${ip.genre || ""} onInput=${(e) => setIP(i, { genre: e.target.value })} class=${compactInputCls} /></${Field}></div>
+          <${Field} label="Rating"><${NumInput} value=${ip.rating} onChange=${(v) => setIP(i, { rating: v })} placeholder="0.0" className=${compactNumCls} /></${Field}>
+          <${Field} label="No. of ratings"><${NumInput} value=${ip.numRatings} onChange=${(v) => setIP(i, { numRatings: v })} placeholder="0" className=${compactNumCls} /></${Field}>
+          <${Field} label="Total books"><${NumInput} value=${ip.totalBooks} onChange=${(v) => setIP(i, { totalBooks: v })} placeholder="0" className=${compactNumCls} /></${Field}>
+          <${Field} label="Length"><${NumInput} value=${ip.lengthHrs} onChange=${(v) => setIP(i, { lengthHrs: v })} suffix="hrs" className=${compactNumCls} /></${Field}>
+          <${Field} label="Launch"><input value=${ip.launchDate || ""} onInput=${(e) => setIP(i, { launchDate: e.target.value })} class=${compactInputCls} placeholder="year" /></${Field}>
+          <${Field} label="Titles in scope" hint="per IP"><input value=${ip.titlesInScope || "All"} onInput=${(e) => setIP(i, { titlesInScope: e.target.value })} class=${compactInputCls} /></${Field}>
         </div>
         <${IPLinks} ip=${ip} onPatch=${(patch) => setIP(i, patch)} />
       </div>`)}
@@ -73,8 +76,8 @@ function IPSection({ deal, allDeals, update }) {
 }
 
 /* ------- MG matrix guardrail / suggestion ------- */
-function GuardrailCard({ deal }) {
-  const mg = dealMgSuggestion(deal); const rev = dealRevMax(deal); const t = currentRound(deal).terms;
+function GuardrailCard({ deal, terms }) {
+  const mg = dealMgSuggestion(deal); const rev = dealRevMax(deal); const t = terms || currentRound(deal).terms;
   const mgOver = mg && t.mgAmount != null && t.mgAmount > mg[1];
   const revOver = rev != null && t.revSharePct != null && t.revSharePct > rev;
   const Block = (label, value, warn) => html`<div>
@@ -208,7 +211,7 @@ function mgPaidDisplay(value) {
   const parsed = typeof payPeriodInfo === "function" ? payPeriodInfo(value) : null;
   return parsed && parsed.label && parsed.label !== "\u2014" ? parsed.label : (value || "Round date");
 }
-function PaymentDatePicker({ value, onChange }) {
+function PaymentDatePicker({ value, onChange, className }) {
   const selected = mgPaidDateObject(value);
   const initial = selected || new Date();
   const [open, setOpen] = useState(false);
@@ -266,7 +269,7 @@ function PaymentDatePicker({ value, onChange }) {
   const chooseDate = (d) => { onChange(mgDateIso(d)); setOpen(false); };
   return html`<div ref=${wrapRef} class="relative">
     <button type="button" data-mg-datepicker="trigger" onClick=${() => setOpen(!open)} aria-haspopup="dialog" aria-expanded=${open}
-      class=${cx(inputCls, "flex items-center justify-between gap-3 text-left cursor-pointer pr-3")}>
+      class=${cx(inputCls, className, "flex items-center justify-between gap-3 text-left cursor-pointer pr-3")}>
       <span class=${value ? "text-slate-100" : "text-slate-500"}>${value ? mgDateLabel(value) : "Round date"}</span>
       <span class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-white/10 bg-white/[0.04] text-brand-300 shadow-[0_0_18px_rgba(229,31,79,.18)]">
         <${Icon} name="calendar" size=${15} />
@@ -277,7 +280,7 @@ function PaymentDatePicker({ value, onChange }) {
       <div class="mb-3 flex items-center justify-between gap-3">
         <div>
           <div class="text-sm font-semibold text-white">${MG_CAL_MONTHS[month]} ${year}</div>
-          <div class="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">MG recovery date</div>
+          <div class="mt-0.5 text-[10px] font-medium uppercase tracking-wide text-slate-500">Contract effective date</div>
         </div>
         <div class="flex items-center gap-1">
           <button type="button" onClick=${() => moveMonth(-1)} class="flex h-8 w-8 items-center justify-center rounded-lg border border-white/10 bg-white/[0.03] text-slate-300 transition hover:border-brand-500/40 hover:bg-brand-500/10 hover:text-brand-300"><${Icon} name="back" size=${15} /></button>
@@ -310,42 +313,53 @@ function TermsEditor({ t, setTerm, round, deal }) {
   const toggleDed = (d) => { const has = (t.deductions || []).includes(d); setTerm("deductions", has ? t.deductions.filter((x) => x !== d) : (t.deductions || []).concat([d])); };
   const revMax = dealRevMax(deal);
   const revOver = revMax != null && t.revSharePct != null && t.revSharePct > revMax;
+  const activeIps = (deal.ips || []).filter((ip) => !ip.dropped);
+  const perIpMg = activeIps.length && hasValue(t.mgAmount) ? allocatedMgForIp(deal, null, t) : null;
+  const compactTermCls = "!rounded-lg !px-3 !py-2 !text-sm";
   return html`<${Panel} title=${"Commercial terms \u00b7 " + round.label}>
-    <div class="grid grid-cols-2 gap-4 md:grid-cols-3">
-      <${Field} label="Payable MG"><div class="flex gap-1.5">
-        <div class="flex-1"><${NumInput} value=${t.mgAmount} onChange=${(v) => setTerm("mgAmount", v)} placeholder="0" /></div>
-        <select value=${t.mgCurrency} onChange=${(e) => setTerm("mgCurrency", e.target.value)} class=${cx(inputCls, "w-20 cursor-pointer")}>${["EUR", "USD", "GBP"].map((c) => html`<option key=${c}>${c}</option>`)}</select>
+    <div class="grid grid-cols-2 gap-3 md:grid-cols-3">
+      <${Field} label="Payable MG"><div class="grid min-w-0 grid-cols-[minmax(0,1fr)_5.5rem] gap-2">
+        <div class="min-w-0"><${NumInput} value=${t.mgAmount} onChange=${(v) => setTerm("mgAmount", v)} placeholder="0" className=${compactTermCls} /></div>
+        <select value=${t.mgCurrency} onChange=${(e) => setTerm("mgCurrency", e.target.value)} class=${cx(inputCls, compactTermCls, "!w-full cursor-pointer")}>${["EUR", "USD", "GBP"].map((c) => html`<option key=${c}>${c}</option>`)}</select>
       </div></${Field}>
-      <${Field} label="Basis"><${Select} value=${t.mgBasis} onChange=${(v) => setTerm("mgBasis", v)} options=${["Per deal", "Per IP", "Per title"]} /></${Field}>
-      <${Field} label="Recoupable"><${Select} value=${t.mgRecoupable ? "Yes" : "No"} onChange=${(v) => setTerm("mgRecoupable", v === "Yes")} options=${["Yes", "No"]} /></${Field}>
-      <${Field} label="MG paid month" hint="blank = round date"><${PaymentDatePicker} value=${t.mgPaidOn || ""} onChange=${(v) => setTerm("mgPaidOn", v)} /></${Field}>
+      <${Field} label="Allocation"><div class=${cx(inputCls, compactTermCls, "flex items-center text-slate-300")}>Deal total · split equally</div></${Field}>
+      <${Field} label="Recoupable"><${Select} value=${t.mgRecoupable ? "Yes" : "No"} onChange=${(v) => setTerm("mgRecoupable", v === "Yes")} options=${["Yes", "No"]} class=${compactTermCls} /></${Field}>
+      <${Field} label="Contract effective date" hint="blank = round date"><${PaymentDatePicker} value=${t.mgPaidOn || ""} onChange=${(v) => setTerm("mgPaidOn", v)} className=${compactTermCls} /></${Field}>
 
       <${Field} label="Rev share" hint=${revMax != null ? "matrix max " + revMax + "%" : ""}>
-        <${NumInput} value=${t.revSharePct} onChange=${(v) => setTerm("revSharePct", v)} suffix="%" className=${revOver ? "!border-rose-500/70 focus:!ring-rose-500/20" : ""} />
+        <${NumInput} value=${t.revSharePct} onChange=${(v) => setTerm("revSharePct", v)} suffix="%" className=${cx(compactTermCls, revOver ? "!border-rose-500/70 focus:!ring-rose-500/20" : "")} />
         ${revOver && html`<div class="mt-1 flex items-center gap-1 text-[11px] font-medium text-rose-400">Exceeds matrix max of ${revMax}% \u2014 needs escalation</div>`}
       </${Field}>
-      <${Field} label="Rev share base"><${Select} value=${t.revShareBase} onChange=${(v) => setTerm("revShareBase", v)} options=${["Net", "Gross"]} /></${Field}>
-      <${Field} label="Cost cap" hint="of Gross, optional"><${NumInput} value=${t.capPct} onChange=${(v) => setTerm("capPct", v)} suffix="%" placeholder="none" /></${Field}>
+      <${Field} label="Rev share base"><${Select} value=${t.revShareBase} onChange=${(v) => setTerm("revShareBase", v)} options=${["Net", "Gross"]} class=${compactTermCls} /></${Field}>
+      <${Field} label="Cost cap" hint="of Gross, optional"><${NumInput} value=${t.capPct} onChange=${(v) => setTerm("capPct", v)} suffix="%" placeholder="none" className=${compactTermCls} /></${Field}>
 
-      <${Field} label="Min term"><${NumInput} value=${t.minTermYears} onChange=${(v) => setTerm("minTermYears", v)} suffix="yrs" /></${Field}>
-      <${Field} label="Territory"><input value=${t.territory} onChange=${(e) => setTerm("territory", e.target.value)} class=${inputCls} /></${Field}>
-      <${Field} label="Languages" hint="comma"><input value=${(t.languages || []).join(", ")} onChange=${(e) => setTerm("languages", e.target.value.split(",").map((x) => x.trim()).filter(Boolean))} class=${inputCls} /></${Field}>
+      <${Field} label="Min term"><${NumInput} value=${t.minTermYears} onChange=${(v) => setTerm("minTermYears", v)} suffix="yrs" className=${compactTermCls} /></${Field}>
+      <${Field} label="Territory"><input value=${t.territory} onChange=${(e) => setTerm("territory", e.target.value)} class=${cx(inputCls, compactTermCls)} /></${Field}>
+      <${Field} label="Languages" hint="comma"><input value=${(t.languages || []).join(", ")} onChange=${(e) => setTerm("languages", e.target.value.split(",").map((x) => x.trim()).filter(Boolean))} class=${cx(inputCls, compactTermCls)} /></${Field}>
 
-      <${Field} label="Rights"><${Select} value=${t.rights} onChange=${(v) => setTerm("rights", v)} options=${RIGHTS_OPTS} /></${Field}>
-      <${Field} label="Exclusivity"><${Select} value=${t.exclusivity} onChange=${(v) => setTerm("exclusivity", v)} options=${EXCL_OPTS} /></${Field}>
-      <${Field} label="Reservation of rights"><${Select} value=${t.reservationOfRights} onChange=${(v) => setTerm("reservationOfRights", v)} options=${["Yes", "No"]} /></${Field}>
+      <${Field} label="Rights"><${Select} value=${t.rights} onChange=${(v) => setTerm("rights", v)} options=${RIGHTS_OPTS} class=${compactTermCls} /></${Field}>
+      <${Field} label="Exclusivity"><${Select} value=${t.exclusivity} onChange=${(v) => setTerm("exclusivity", v)} options=${EXCL_OPTS} class=${compactTermCls} /></${Field}>
+      <${Field} label="Reservation of rights"><${Select} value=${t.reservationOfRights} onChange=${(v) => setTerm("reservationOfRights", v)} options=${["Yes", "No"]} class=${compactTermCls} /></${Field}>
     </div>
 
-    <div class="mt-4">
+    ${perIpMg != null && html`<div class="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-lg border border-brand-500/20 bg-brand-500/[0.06] px-3 py-2">
+      <div>
+        <div class="text-[10px] font-semibold uppercase tracking-wide text-brand-300">Equal MG allocation</div>
+        <div class="mt-0.5 text-xs text-slate-400">Total ${fmtMoney(t.mgAmount, t.mgCurrency)} divided across ${activeIps.length} active IP${activeIps.length === 1 ? "" : "s"}</div>
+      </div>
+      <div class="tnum text-sm font-semibold text-slate-100">${fmtMoney(perIpMg, t.mgCurrency)} per IP</div>
+    </div>`}
+
+    <div class="mt-3">
       <div class="mb-1.5 text-[11px] font-semibold uppercase tracking-wide text-slate-400">Allowed deductions / recoupment</div>
       <div class="flex flex-wrap gap-2">
         ${DEDUCTIONS.map((d) => { const on = (t.deductions || []).includes(d); return html`<button key=${d} onClick=${() => toggleDed(d)}
           class=${cx("rounded-lg border px-3 py-1.5 text-xs font-medium transition", on ? "border-brand-500/60 bg-brand-500/15 text-brand-400" : "border-white/10 bg-ink-850 text-slate-400 hover:text-slate-200")}>${on ? "\u2713 " : ""}${d}</button>`; })}
       </div>
     </div>
-    <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-      <${Field} label="MG for future titles"><${Select} value=${t.mgFutureTitles} onChange=${(v) => setTerm("mgFutureTitles", v)} options=${["Same as current per title", "To be decided later"]} /></${Field}>
-      <${Field} label="Additional conditions"><input value=${t.additionalConditions} onChange=${(e) => setTerm("additionalConditions", e.target.value)} class=${inputCls} placeholder="free text" /></${Field}>
+    <div class="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+      <${Field} label="MG for future titles"><${Select} value=${t.mgFutureTitles} onChange=${(v) => setTerm("mgFutureTitles", v)} options=${["Same as current per title", "To be decided later"]} class=${compactTermCls} /></${Field}>
+      <${Field} label="Additional conditions"><input value=${t.additionalConditions} onChange=${(e) => setTerm("additionalConditions", e.target.value)} class=${cx(inputCls, compactTermCls)} placeholder="free text" /></${Field}>
     </div>
   <//>`;
 }
@@ -367,8 +381,9 @@ function patchIpPayment(update, deal, idx, patch) {
     ...d,
     ips: d.ips.map((ip, i) => {
       if (i !== idx) return ip;
-      const inherited = clonePaymentTerms(effectivePaymentTerms(d, ip));
-      return { ...ip, paymentTermsMode: "custom", paymentTerms: { ...inherited, ...(ip.paymentTerms || {}), ...patch } };
+      const explicitMg = Object.prototype.hasOwnProperty.call(patch, "mgAmount");
+      const nextPatch = explicitMg ? { ...patch, mgAmountOverride: true, mgBasis: "Per IP" } : patch;
+      return { ...ip, paymentTermsMode: "custom", paymentTerms: { ...(ip.paymentTerms || {}), ...nextPatch } };
     }),
     updatedAt: new Date().toISOString()
   }));
@@ -383,7 +398,7 @@ function setIpPaymentMode(update, deal, idx, mode) {
         delete next.paymentTerms;
         return next;
       }
-      return { ...ip, paymentTermsMode: "custom", paymentTerms: clonePaymentTerms(effectivePaymentTerms(d, ip)) };
+      return { ...ip, paymentTermsMode: "custom", paymentTerms: { ...(ip.paymentTerms || {}) } };
     }),
     updatedAt: new Date().toISOString()
   }));
@@ -394,12 +409,17 @@ function PaymentTermsByIpPanel({ deal, update }) {
   return html`<${Panel} title="Payment terms by IP"
     action=${html`<span class=${cx("rounded-lg border px-2 py-1 text-[11px] font-semibold", summary.ready ? "border-emerald-400/25 bg-emerald-500/10 text-emerald-300" : "border-amber-400/25 bg-amber-500/10 text-amber-300")}>${summary.ready ? "Payment ready" : "Needs terms"}</span>`}>
     <div class="mb-4 rounded-xl border border-white/[0.06] bg-ink-850 px-3 py-2 text-xs leading-relaxed text-slate-400">
-      Default behavior: the current deal terms apply to every IP. Turn on <span class="font-semibold text-slate-200">Custom</span> only for an IP that negotiated different MG, rev share, cap, recoupment, or recovery month.
+      Default behavior: the current deal terms apply to every IP. A per-deal MG is divided equally across active IPs. Turn on <span class="font-semibold text-slate-200">Custom</span> only for an IP that negotiated different MG, rev share, cap, recoupment, or contract effective date.
     </div>
     <div class="space-y-3">
       ${activeIps.map((ip, i) => {
         const realIdx = (deal.ips || []).indexOf(ip);
         const terms = effectivePaymentTerms(deal, ip);
+        const allocatedMg = allocatedMgForIp(deal, ip, terms);
+        const customMg = ipHasCustomMgOverride(deal, ip);
+        const mgAllocationLabel = customMg
+          ? "Custom IP amount"
+          : "Equal share of " + activeIps.length + " IP" + (activeIps.length === 1 ? "" : "s");
         const ready = paymentReadinessForIp(deal, ip);
         const custom = ipUsesCustomPaymentTerms(ip);
         const toggleDed = (name) => {
@@ -425,26 +445,26 @@ function PaymentTermsByIpPanel({ deal, update }) {
           <div class="mt-3 grid gap-3 text-xs sm:grid-cols-3">
             <div class="rounded-lg border border-white/[0.05] bg-black/10 px-3 py-2">
               <div class="text-[10px] uppercase tracking-wide text-slate-500">Effective MG</div>
-              <div class="mt-1 font-semibold text-slate-200">${fmtMoney(terms.mgAmount, terms.mgCurrency)} · ${terms.mgBasis}${terms.mgRecoupable === false ? " · NR" : ""}</div>
+              <div class="mt-1 font-semibold text-slate-200">${fmtMoney(allocatedMg, terms.mgCurrency)} · ${mgAllocationLabel}${terms.mgRecoupable === false ? " · NR" : ""}</div>
             </div>
             <div class="rounded-lg border border-white/[0.05] bg-black/10 px-3 py-2">
               <div class="text-[10px] uppercase tracking-wide text-slate-500">Rev share</div>
               <div class="mt-1 font-semibold text-slate-200">${terms.revSharePct || 0}% ${terms.revShareBase || "Net"}${terms.capPct != null && terms.capPct !== "" ? " · cap " + terms.capPct + "%" : ""}</div>
             </div>
             <div class="rounded-lg border border-white/[0.05] bg-black/10 px-3 py-2">
-              <div class="text-[10px] uppercase tracking-wide text-slate-500">Recovery month</div>
+              <div class="text-[10px] uppercase tracking-wide text-slate-500">Contract effective date</div>
               <div class="mt-1 font-semibold text-slate-200">${mgPaidDisplay(terms.mgPaidOn)}</div>
             </div>
           </div>
           ${custom && html`<div class="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
             <${Field} label="MG"><${NumInput} value=${terms.mgAmount} onChange=${(v) => patchIpPayment(update, deal, realIdx, { mgAmount: v })} /></${Field}>
             <${Field} label="Currency"><${Select} value=${terms.mgCurrency || "EUR"} onChange=${(v) => patchIpPayment(update, deal, realIdx, { mgCurrency: v })} options=${["EUR", "USD", "GBP"]} /></${Field}>
-            <${Field} label="Basis"><${Select} value=${terms.mgBasis || "Per deal"} onChange=${(v) => patchIpPayment(update, deal, realIdx, { mgBasis: v })} options=${["Per deal", "Per IP", "Per title"]} /></${Field}>
+            <${Field} label="Allocation"><div class=${cx(inputCls, "flex items-center text-slate-300")}>Final for this IP</div></${Field}>
             <${Field} label="Recoupable"><${Select} value=${terms.mgRecoupable ? "Yes" : "No"} onChange=${(v) => patchIpPayment(update, deal, realIdx, { mgRecoupable: v === "Yes" })} options=${["Yes", "No"]} /></${Field}>
             <${Field} label="Rev share"><${NumInput} value=${terms.revSharePct} onChange=${(v) => patchIpPayment(update, deal, realIdx, { revSharePct: v })} suffix="%" /></${Field}>
             <${Field} label="Rev base"><${Select} value=${terms.revShareBase || "Net"} onChange=${(v) => patchIpPayment(update, deal, realIdx, { revShareBase: v })} options=${["Net", "Gross"]} /></${Field}>
             <${Field} label="Cost cap"><${NumInput} value=${terms.capPct} onChange=${(v) => patchIpPayment(update, deal, realIdx, { capPct: v })} suffix="%" placeholder="none" /></${Field}>
-            <${Field} label="MG paid month"><${PaymentDatePicker} value=${terms.mgPaidOn || ""} onChange=${(v) => patchIpPayment(update, deal, realIdx, { mgPaidOn: v })} /></${Field}>
+            <${Field} label="Contract effective date"><${PaymentDatePicker} value=${terms.mgPaidOn || ""} onChange=${(v) => patchIpPayment(update, deal, realIdx, { mgPaidOn: v })} /></${Field}>
             <div class="col-span-2 md:col-span-4">
               <div class="mb-1.5 text-[10px] font-semibold uppercase tracking-wide text-slate-500">Deductions</div>
               <div class="flex flex-wrap gap-2">${DEDUCTIONS.map((name) => {
@@ -496,7 +516,7 @@ function CommentsCard({ deal, update }) {
 }
 
 function ChangeLogCard({ deal }) {
-  const log = deal.changeLog || [];
+  const log = compactChangeLog(deal.changeLog || []);
   return html`<${Panel} title=${"Change log (" + log.length + ")"}>
     <div class="max-h-72 space-y-2 overflow-y-auto">
       ${log.slice(0, 40).map((l, i) => html`<div key=${i} class="border-b border-white/5 pb-2 text-xs">
@@ -555,12 +575,53 @@ function inferResultType(r) {
   if (/author|self/i.test(g)) return "Author";
   return "Publisher";
 }
+function launchYearFromValue(value) {
+  if (value == null || value === "") return "";
+  const text = String(value).trim();
+  const year = text.match(/\b(?:18|19|20|21)\d{2}\b/);
+  return year ? year[0] : text;
+}
+function launchYearFromResult(r) {
+  const row = r || {};
+  const raw = row.rawRow || row.raw_row || {};
+  const direct = [
+    row.launchDate, row.launchYear, row.seriesLaunchDate, row.seriesLaunchYear,
+    row.releaseDate, row.releaseYear, row.publicationDate, row.publicationYear,
+    row.publishedDate, row.publishedYear, row.firstPublished, row.firstPublishedYear
+  ];
+  for (const value of direct) {
+    const year = launchYearFromValue(value);
+    if (year) return year;
+  }
+  const launchKeys = /^(?:amazon|series|ip)?(?:launchdate|launchyear|releasedate|releaseyear|publicationdate|publicationyear|publisheddate|publishedyear|firstpublished|firstpublishedyear)$/;
+  for (const key of Object.keys(raw)) {
+    if (!launchKeys.test(String(key).toLowerCase().replace(/[^a-z0-9]+/g, ""))) continue;
+    const year = launchYearFromValue(raw[key]);
+    if (year) return year;
+  }
+  const series = normName(row.series || row.ip || row.name);
+  const mappedYear = launchYearFromValue((window.PFM_IP_LAUNCH_YEARS || {})[series]);
+  if (mappedYear) return mappedYear;
+  const entityName = normName(resultEntityName(row));
+  if (series) {
+    for (const deal of (window.SEED_DEALS || [])) {
+      if (entityName && normName(deal.entityName) !== entityName) continue;
+      const match = (deal.ips || []).find((ip) => normName(ip.series) === series);
+      if (!match) continue;
+      const year = launchYearFromValue(match.launchDate || match.launchYear);
+      if (year) return year;
+    }
+  }
+  return "";
+}
 function ipFromResult(r) {
   return {
     sourceKey: r.sourceKey || r.source_key || "",
+    ipId: r.ipId || "",
     series: r.series || r.ip || r.name || "",
     asin: r.asin || "",
     genre: r.genre || "",
+    launchDate: launchYearFromResult(r),
     lengthHrs: r.lengthHrs != null ? r.lengthHrs : r.durationHrs,
     totalBooks: r.totalBooks,
     rating: r.rating,
@@ -865,7 +926,7 @@ function NewDeal({ deals, onClose, onCreate }) {
     if (!name.trim()) { alert("Entity name required"); return; }
     if (!ips.length) { alert("Select at least one IP/title for this entity"); return; }
     const r0 = { id: uid("r"), label: "Aligned internally", date: new Date().toISOString().slice(0, 10), note: "", terms: defaultTerms() };
-    onCreate({ id: uid("deal"), entityName: name.trim(), entityType: type, scoutEntityKey: entityKey, sourceSnapshot: { source: selectedSource, savedToRepository: true }, author: type === "Author" ? name.trim() : "", publisher: type === "Publisher" ? name.trim() : "", agent: type === "Agent" ? name.trim() : "", accountManager: am, reasonForSelection: "", status: "Aligned internally", ips, rounds: [r0], currentRoundId: r0.id, links: { contract: "", offer: "", source: "" }, comments: [], changeLog: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
+    onCreate({ id: uid("deal"), entityId: resolvedId || null, entityName: name.trim(), entityType: type, scoutEntityKey: entityKey, sourceSnapshot: { source: selectedSource, savedToRepository: true }, author: type === "Author" ? name.trim() : "", publisher: type === "Publisher" ? name.trim() : "", agent: type === "Agent" ? name.trim() : "", accountManager: am, reasonForSelection: "", status: "Aligned internally", ips, rounds: [r0], currentRoundId: r0.id, links: { contract: "", offer: "", source: "" }, comments: [], changeLog: [], createdAt: new Date().toISOString(), updatedAt: new Date().toISOString() });
   };
 
   return html`<div class="fixed inset-0 z-50 flex items-start justify-center overflow-y-auto bg-black/70 p-6 glass" onClick=${onClose}>

@@ -17,6 +17,7 @@ const HEADER_ALIASES = {
   numRatings: ["amazonseriesreviews", "amazon series reviews", "numratings", "ratingscount", "reviews"],
   totalBooks: ["totalbooks", "total books", "books", "bookcount"],
   durationHrs: ["serieslengthmin50hrs", "series length min 50 hrs", "durationhrs", "durationhours", "lengthhrs", "hours"],
+  launchDate: ["launch", "launchdate", "launch date", "launchyear", "launch year", "iplaunchdate", "ip launch date", "iplaunchyear", "ip launch year", "serieslaunchdate", "series launch date", "serieslaunchyear", "series launch year", "releasedate", "release date", "releaseyear", "release year", "publicationdate", "publication date", "publicationyear", "publication year", "publisheddate", "published date", "publishedyear", "published year", "firstpublished", "first published", "firstpublishedyear", "first published year"],
   amazon: ["amazonlinks", "amazon links", "amazon", "amazonlink", "amazonurl"],
   goodreads: ["goodreadslinks", "goodreads links", "goodreads", "goodreadslink", "goodreadsurl"],
   targetAudience: ["targetaudience", "target audience"],
@@ -405,6 +406,17 @@ function entityResult(row) {
 }
 
 function ipResult(row) {
+  const raw = row.raw_row || {};
+  const launchKeys = new Set(["launch", "launchdate", "launchyear", "iplaunchdate", "iplaunchyear", "serieslaunchdate", "serieslaunchyear", "releasedate", "releaseyear", "publicationdate", "publicationyear", "publisheddate", "publishedyear", "firstpublished", "firstpublishedyear"]);
+  let launchDate = raw.launchDate || raw.launchYear || "";
+  if (!launchDate) {
+    for (const key of Object.keys(raw)) {
+      if (launchKeys.has(cleanHeader(key)) && raw[key] != null && String(raw[key]).trim() !== "") {
+        launchDate = raw[key];
+        break;
+      }
+    }
+  }
   return {
     kind: "ip",
     source: "repository",
@@ -421,6 +433,7 @@ function ipResult(row) {
     series: row.series || "",
     asin: row.asin || "",
     genre: row.genre || "",
+    launchDate: launchDate || "",
     lengthHrs: row.length_hrs,
     durationHrs: row.length_hrs,
     totalBooks: row.total_books,
@@ -458,6 +471,7 @@ module.exports = {
   ipRowFromSheet,
   entityResult,
   ipResult,
+  normalizeSheetRow,
   urlLike,
   queryParam,
 };

@@ -28,6 +28,9 @@ const TERMINAL_STATUSES = ["Executed", "Lost", "Dropped"];
 function isClosedDeal(d) { return TERMINAL_STATUSES.includes(d.status); }
 function isLiveDeal(d) { return !isClosedDeal(d); }
 function normName(s) { return (s || "").trim().toLowerCase(); }
+function launchYearForSeries(series) {
+  return (window.PFM_IP_LAUNCH_YEARS || {})[normName(series)] || "";
+}
 function pad2(n) { return String(n).padStart(2, "0"); }
 function entitySerial(entityId) { const m = String(entityId || "").match(/(\d+)\s*$/); return m ? parseInt(m[1], 10) : 0; }
 function ipNum(ipId) { const m = String(ipId || "").match(/IP-(\d+)\s*$/i); return m ? parseInt(m[1], 10) : 0; }
@@ -38,16 +41,20 @@ function maxIpNumForEntity(deals, entityId) { let max = 0; deals.forEach((d) => 
 function existingIpMap(deals, entityId) { const m = {}; deals.forEach((d) => { if (d.entityId !== entityId) return; (d.ips || []).forEach((ip) => { if (ip.ipId) m[normName(ip.series)] = ip.ipId; }); }); return m; }
 // Resolve/mint Entity ID by name (reuse if the party already exists) and assign IP IDs (reuse on re-engagement, else next per-entity number).
 function assignDealIds(raw, deals) {
-  let entityId = findEntityIdByName(deals, raw.entityName);
+  let entityId = raw.entityId || findEntityIdByName(deals, raw.entityName);
   let type = raw.entityType;
   if (entityId) { const ex = deals.find((d) => d.entityId === entityId); if (ex) type = ex.entityType || type; }
   else { entityId = "ENT-" + (TYPE_CODE[type] || "ENT") + "-" + pad2(nextSerialNum(deals)); }
   let maxIp = maxIpNumForEntity(deals, entityId);
   const map = existingIpMap(deals, entityId);
   const ips = (raw.ips || []).map((ip) => {
-    const k = normName(ip.series); let id = map[k];
-    if (!id) { maxIp += 1; id = entityId + "-IP-" + pad2(maxIp); map[k] = id; }
-    return Object.assign({ id: ip.id || uid("ip") }, ip, { ipId: id });
+    const normalizedIp = Object.assign({}, ip);
+    if (!normalizedIp.launchDate) normalizedIp.launchDate = launchYearForSeries(normalizedIp.series);
+    const k = normName(normalizedIp.series); let id = normalizedIp.ipId || map[k];
+    if (id) maxIp = Math.max(maxIp, ipNum(id));
+    else { maxIp += 1; id = entityId + "-IP-" + pad2(maxIp); }
+    map[k] = id;
+    return Object.assign({ id: normalizedIp.id || uid("ip") }, normalizedIp, { ipId: id });
   });
   return Object.assign({}, raw, { entityId: entityId, entityType: type, ips: ips });
 }
@@ -111,7 +118,8 @@ function dealMgSuggestion(d) {
 }
 
 /* Payment calculation readiness: deal terms are the default, IP terms override only when needed. */
-const PAYMENT_OVERRIDE_FIELDS = ["mgAmount", "mgCurrency", "mgBasis", "mgRecoupable", "mgPaidOn", "revSharePct", "revShareBase", "capPct", "deductions", "mgFutureTitles", "additionalConditions"];
+const PAYMENT_OVERRIDE_FIELDS = ["mgAmount", "mgAmountOverride", "mgCurrency", "mgBasis", "mgRecoupable", "mgPaidOn", "revSharePct", "revShareBase", "capPct", "deductions", "mgFutureTitles", "additionalConditions"];
+const CHANGELOG_TYPING_FIELDS = new Set(["mgAmount", "revSharePct", "capPct", "minTermYears", "territory", "languages", "additionalConditions"]);
 function hasValue(v) { return v !== null && v !== undefined && v !== ""; }
 function ipUsesCustomPaymentTerms(ip) {
   if (!ip) return false;
@@ -128,7 +136,53 @@ function clonePaymentTerms(terms) {
 function effectivePaymentTerms(deal, ip) {
   const round = currentRound(deal);
   const base = round && round.terms || {};
-  return ipUsesCustomPaymentTerms(ip) ? Object.assign({}, base, ip.paymentTerms || {}) : Object.assign({}, base);
+  const terms = ipUsesCustomPaymentTerms(ip) ? Object.assign({}, base, ip.paymentTerms || {}) : Object.assign({}, base);
+  if (ipHasCustomMgOverride(deal, ip)) terms.mgBasis = "Per IP";
+  return terms;
+}
+function ipHasCustomMgOverride(deal, ip) {
+  if (!ipUsesCustomPaymentTerms(ip)) return false;
+  const custom = ip.paymentTerms || {};
+  if (!Object.prototype.hasOwnProperty.call(custom, "mgAmount") || !hasValue(custom.mgAmount)) return false;
+  if (custom.mgAmountOverride === true) return true;
+  const round = currentRound(deal);
+  const base = round && round.terms || {};
+  return Number(custom.mgAmount) !== Number(base.mgAmount);
+}
+function allocatedMgForIp(deal, ip, terms) {
+  const amount = Number(terms && terms.mgAmount);
+  if (!Number.isFinite(amount)) return 0;
+  // A custom IP amount is already the final amount negotiated for that IP.
+  if (ipHasCustomMgOverride(deal, ip)) return amount;
+
+  // The Commercial Terms MG is one deal total. Split it across every active IP,
+  // including legacy deals that accidentally saved the shared basis as "Per IP".
+  const activeIps = (deal && deal.ips || []).filter((row) => !row.dropped);
+  return activeIps.length ? amount / activeIps.length : amount;
+}
+function canCoalesceChangeLog(newer, older, maxGapMs) {
+  if (!newer || !older || !CHANGELOG_TYPING_FIELDS.has(newer.field)) return false;
+  if (newer.field !== older.field || newer.round !== older.round || newer.who !== older.who) return false;
+  const newerTs = Date.parse(newer.ts || "");
+  const olderTs = Date.parse(older.ts || "");
+  return Number.isFinite(newerTs) && Number.isFinite(olderTs) && Math.abs(newerTs - olderTs) <= maxGapMs;
+}
+function prependChangeLog(existing, additions) {
+  let out = (existing || []).slice();
+  (additions || []).slice().reverse().forEach((entry) => {
+    if (canCoalesceChangeLog(entry, out[0], 30000)) out = [{ ...entry, from: out[0].from }, ...out.slice(1)];
+    else out = [entry, ...out];
+  });
+  return out;
+}
+function compactChangeLog(entries) {
+  const out = [];
+  (entries || []).forEach((entry) => {
+    const current = out[out.length - 1];
+    if (canCoalesceChangeLog(current, entry, 60000)) current.from = entry.from;
+    else out.push({ ...entry });
+  });
+  return out;
 }
 function paymentTermsSource(ip) {
   return ipUsesCustomPaymentTerms(ip) ? "IP override" : "Deal default";
@@ -170,11 +224,28 @@ function paymentReadinessForDeal(deal) {
 const KEY = "pfm_deal_tracker_v1";
 const SEED_VERSION = 6; // bump to push fresh seed data to already-loaded browsers
 function freshSeed() { return JSON.parse(JSON.stringify(window.SEED_DEALS || [])); }
+function fillMissingSeedIpFields(deals) {
+  const seedIps = {};
+  freshSeed().forEach((deal) => {
+    (deal.ips || []).forEach((ip) => {
+      const key = normName(deal.entityName) + "|" + normName(ip.series);
+      seedIps[key] = ip;
+    });
+  });
+  return (deals || []).map((deal) => ({
+    ...deal,
+    ips: (deal.ips || []).map((ip) => {
+      const seedIp = seedIps[normName(deal.entityName) + "|" + normName(ip.series)];
+      if (!seedIp || hasValue(ip.launchDate) || !hasValue(seedIp.launchDate)) return ip;
+      return { ...ip, launchDate: seedIp.launchDate };
+    })
+  }));
+}
 function ensureDemoSeedDeals(deals) {
   const existing = {};
   (deals || []).forEach((d) => { if (d && d.id) existing[d.id] = true; });
   const required = freshSeed().filter((d) => d.demoPaymentSeed && !existing[d.id]);
-  return required.length ? deals.concat(required) : deals;
+  return fillMissingSeedIpFields(required.length ? deals.concat(required) : deals);
 }
 function mergeDealsById(base, incoming) {
   const byId = {};
@@ -220,6 +291,8 @@ const ICON_BODY = {
   back: html`<g><path d="M15 18l-6-6 6-6"/></g>`,
   plus: html`<g><path d="M12 5v14M5 12h14"/></g>`,
   calendar: html`<g><rect x="3" y="4.5" width="18" height="16" rx="3"/><path d="M8 2.5v4M16 2.5v4M3 9h18"/></g>`,
+  download: html`<g><path d="M12 3v12M7.5 10.5 12 15l4.5-4.5"/><path d="M5 20h14"/></g>`,
+  file: html`<g><path d="M6 2.5h8l4 4V21H6z"/><path d="M14 2.5V7h4M9 12h6M9 16h6"/></g>`,
   link: html`<g><path d="M10 13a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 11a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></g>`,
   x: html`<g><path d="M18 6 6 18M6 6l12 12"/></g>`,
   star: html`<g><path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8L12 17l-5.2 2.6 1-5.8L3.5 9.7l5.9-.9z"/></g>`,

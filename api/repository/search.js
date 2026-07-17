@@ -20,7 +20,7 @@ async function searchEntities(q, limit, entityName, entityKey) {
 
 async function searchIps(q, limit, entityName, entityKey) {
   const url = new URL("http://local/rest/v1/repository_ips");
-  queryParam(url, "select", "id,source_key,entity_key,entity_id,entity_name,entity_type,author,publisher,ip_id,series,asin,genre,length_hrs,total_books,rating,num_ratings,amazon,goodreads,active_in_sheet");
+  queryParam(url, "select", "id,source_key,entity_key,entity_id,entity_name,entity_type,author,publisher,ip_id,series,asin,genre,length_hrs,total_books,rating,num_ratings,amazon,goodreads,active_in_sheet,raw_row");
   queryParam(url, "order", "last_seen_at.desc");
   queryParam(url, "limit", String(limit));
   if (entityKey) queryParam(url, "entity_key", `eq.${entityKey}`);
